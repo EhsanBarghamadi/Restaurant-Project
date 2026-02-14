@@ -76,12 +76,24 @@ def main_menu():
         choice = input("Enter your choice: ").strip()
 
         if choice == "1":
-            mu.show_menu()
-            input("...")
+            result = mu.show_menu()
+            if result:
+                for item in result:
+                    print(f"ID: {item[0]} | Name: {item[1]} | Price: {item[2]}")
+                    input("...")
+            elif None in result:
+                print("Menu is empty!")
+                input("...")
 
         elif choice == "2":
-            tl.show_table_status()
-            input("...")
+            result = tl.show_table_status()
+            if result:
+                for table in result:
+                    print(f"ID: {table[0]} | table_number: {table[1]} | status: {table[2]}")
+                    input("...")
+            elif None in result:
+                print("There is no table")
+                input("...")
 
         elif choice == "3":
             t_num = get_input(int,"Enter table number: ")

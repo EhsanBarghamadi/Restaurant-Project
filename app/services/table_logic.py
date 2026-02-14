@@ -32,11 +32,11 @@ def update_table_status(cur, table_number:int, new_status:str) -> tuple[bool, st
         return True, f"The status change of table #{table_number} was successful."
 
 @manager_connection
-def show_table_status(cur) -> None:
+def show_table_status(cur) -> list:
         cur.execute("SELECT * FROM tables")
         tables = cur.fetchall()
-        for table in tables:
-            print(f"ID: {table[0]} | table_number: {table[1]} | status: {table[2]}")
+        return tables
+            
 
 @manager_connection
 def remove_table(cur, table_number:int) -> tuple[bool, str]:

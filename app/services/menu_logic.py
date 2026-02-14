@@ -34,14 +34,13 @@ def edit_menu_item_price(cur, name:str, price) -> tuple[bool, str]:
     return False, "The desired item was not found."
 
 @manager_connection
-def show_menu(cur) -> None:
+def show_menu(cur) -> list:
     cur.execute("SELECT id, name, price FROM menu_items ORDER BY id")
     menu = cur.fetchall()
     if not menu:
-        print("Menu is empty!")
+        return list()
     else:
-        for item in menu:
-            print(f"ID: {item[0]} | Name: {item[1]} | Price: {item[2]}")
+        return menu
 
 @manager_connection
 def remove_item(cur, name):

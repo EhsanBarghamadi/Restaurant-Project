@@ -44,7 +44,7 @@ Before running the application, ensure you have the following installed:
 Run the script directly from your terminal:
 
 ```bash
-python app.py
+python main.py
 ```
 <b>😎 New features and improvements are on the way! 
   😅😄😘</b>

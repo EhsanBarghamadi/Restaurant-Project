@@ -1,7 +1,15 @@
 from dotenv import load_dotenv
 import psycopg2
 import os
+import logging
+
 load_dotenv()
+
+logging.basicConfig(
+    filename='app.log',
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
 
 def get_connection():
     '''
@@ -13,7 +21,7 @@ def get_connection():
             os.getenv("DB_HOST"),
             os.getenv("DB_PORT")]
     if None in value:
-        print("Please define the variables in the env file correctly.(referral .env.example)")
+        logging.error("Please define the variables in the env file correctly.(referral .env.example)")
         return None
     try:
         connection = psycopg2.connect(
@@ -23,10 +31,11 @@ def get_connection():
             host=os.getenv("DB_HOST"),
             port=os.getenv("DB_PORT")
         )
+        logging.info("Connection to database was successful.")
         return connection
     
     except Exception as error:
-        print(f"Error in connection:\n {error}")
+        logging.error(f"Error in connection:\n {error}")
         return None
 
 def manager_connection(fun):
@@ -34,16 +43,15 @@ def manager_connection(fun):
         conn = get_connection()
         if conn:
             try:
-                cur = conn.cursor()
-                result = fun(cur, *args, **kwargs)
-                conn.commit()
-                return result
+                with conn.cursor() as cur:
+                    result = fun(cur, *args, **kwargs)
+                    conn.commit()
+                    return result
             
             except Exception as error:
                 conn.rollback()
-                print(f"Error: {error}")
+                logging.error(f"Error: {error}")
                 
             finally:
-                cur.close()
                 conn.close()
     return wrapper

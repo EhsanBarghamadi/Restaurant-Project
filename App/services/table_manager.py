@@ -43,16 +43,3 @@ class TableManager():
             return False, f"Table {table_number} does not exist. Please add it first."
         obj.status = TableStatus(new_status.lower())
         obj.save()
-
-
-
-
-        ...
-    @classmethod
-    def get_by_id(cls, id):
-        query = "SELECT * FROM tables WHERE id = %s"
-        result, fetch = db.query_tool(query, (id), fetch=True)
-        if result and  fetch:
-            return True, cls(fetch[0][0], fetch[0][1], TableStatus(fetch[0][2]))
-        else:
-            return False, f"There is no table with id: {id}."

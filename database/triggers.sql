@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION availeble_table_after_paid()
+CREATE OR REPLACE FUNCTION available_table_after_paid()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.status = 'paid' AND OLD.status != 'paid'
@@ -14,7 +14,7 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER available_table
 AFTER UPDATE ON orders
 FOR EACH ROW
-EXECUTE FUNCTION availeble_table_after_paid();
+EXECUTE FUNCTION available_table_after_paid();
 
 COMMENT ON TRIGGER available_table ON orders IS 'Availbling up the table after paying for the order';
 
@@ -24,7 +24,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     UPDATE menu_items
     SET portions_left = portions_left - NEW.quantity
-    WHERE id = NEW.item_id;
+    WHERE id = NEW.menu_item_id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -68,11 +68,11 @@ BEGIN
     IF NEW.quantity > OLD.quantity
     THEN UPDATE menu_items
     SET portions_left = portions_left - (NEW.quantity - OLD.quantity)
-    WHERE menu_items.id = NEW.item_id;
+    WHERE menu_items.id = NEW.menu_item_id;
     ELSIF NEW.quantity < OLD.quantity
     THEN UPDATE menu_items
     SET portions_left = portions_left + (OLD.quantity - NEW.quantity)
-    WHERE menu_items.id = NEW.item_id;
+    WHERE menu_items.id = NEW.menu_item_id;
     END IF;
     RETURN NEW;
 END;
@@ -84,3 +84,21 @@ FOR EACH ROW
 EXECUTE FUNCTION check_portions_left();
 
 COMMENT ON TRIGGER portions_left_check ON order_details IS 'Fixing inventory after changing an order';
+
+CREATE OR REPLACE FUNCTION return_stock_on_delete()
+RETURNS TRIGGER AS $$
+BEGIN 
+    UPDATE menu_items
+    SET portions_left = portions_left + OLD.quantity
+    WHERE id = OLD.menu_item_id;
+    
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_return_stock_on_delete
+AFTER DELETE ON order_details
+FOR EACH ROW
+EXECUTE FUNCTION return_stock_on_delete();
+
+COMMENT ON TRIGGER trg_return_stock_on_delete ON order_details IS 'Return inventory to warehouse if an item is physically removed from an order';

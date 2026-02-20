@@ -11,14 +11,15 @@ class MenuManager():
     def __init__(self):
         self.all_items = list()
 
-    def existence_item(self, name):
-        name = name.capitalize()
+    def existence_item(self, name) -> tuple[bool, None | object]:
+        name = name.title()
         select_item = [item for item in self.all_items if item.name == name]
         if select_item:
             return True, select_item[0]
         return False, None
     
-    def add_item(self, name, price, portions_left):
+    def add_item(self, name, price, portions_left) -> tuple[bool, str]:
+        name = name.title()
         result, obj = self.existence_item(name)
         if result:
             return False, f"There is a item {obj.name} in menu."
@@ -26,10 +27,11 @@ class MenuManager():
         result, id = db.query_tool(query, (name, price, portions_left), True)
         if not result:
             return False, f"Error Database: {id}"
-        self.all_items.append(MenuItems(id[0][0], name.capitalize(), price, portions_left))
+        self.all_items.append(MenuItems(id[0][0], name, price, portions_left))
         return True, f"Item Menu {name} added successfully."
     
-    def load_all(self):
+    def load_all(self) -> datetime:
+        self.all_items = []
         query = "SELECT id, name, price, portions_left FROM menu_items"
         result, fetch = db.query_tool(query, fetch=True)
         if result:
@@ -38,6 +40,7 @@ class MenuManager():
         return datetime.now()
     
     def change_price(self, name, new_price):
+        name = name.title()
         result, obj = self.existence_item(name)
         if not result:
             return False, f"Item {name} does not exist. Please add it first."

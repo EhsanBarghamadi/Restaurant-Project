@@ -55,29 +55,30 @@ class DatabaseManager():
         logging.info("Connection to database was successful.")
         return True, conn
 
-    def query_tool(self, query, params=None, fetch=False):
+    def query_tool(self, query, params=None, fetch=False, number=False) -> tuple[bool , object | str]:
         result, conn = self.connect()
         if not result:
             logging.error(f"Connection Error: {conn}")
             return False, f"Connection Error: {conn}"
         try:
             with conn.cursor() as cur:
-                cur.execute(query, params)
+                if not number:
+                    cur.execute(query, params)
+                if number:
+                    cur.executemany(query, params)
                 if fetch:
                     return True, cur.fetchall()
                 else:
                     conn.commit()
                     return True, "Operation successful."
-
         except Exception as error:
             conn.rollback()
             logging.error(error)
             return False, f"Query Error: {error}"
-        
         finally:
             conn.close()
 
-    def run_script_file(self, file_script):
+    def run_script_file(self, file_script) -> bool:
         try:
             with open(file_script , "r", encoding="utf-8") as file:
                 scripts = file.read()
@@ -86,7 +87,6 @@ class DatabaseManager():
                 return True
             else:
                 return False
-            
         except Exception as error:
             logging.error(f"Message Error: {error}")
             return False, f"Message Error: {error}"

@@ -17,8 +17,8 @@ CREATE TABLE tables (
 -- Create waiter_table to store user_id and table
 CREATE TABLE waiter_table(
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    table_id INTEGER REFERENCES tables(id) ON DELETE CASCADE,
-    id SERIAL PRIMARY KEY
+    table_id INTEGER UNIQUE REFERENCES tables(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, table_id)
 );
 
 -- Create menu_items table to store food names and prices

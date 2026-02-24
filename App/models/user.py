@@ -1,8 +1,6 @@
 from app.database.database_manager import DatabaseManager
 from enum import Enum
 
-db = DatabaseManager()
-
 class UserRoles(Enum):
     ADMIN = 'admin'
     WAITER = 'waiter'
@@ -11,9 +9,9 @@ class Users():
     """
     Docstring for Users
     """
-    def __init__(self, id, username, password, roles: object):
+    def __init__(self, id, username, password, roles: object, assigned_tables: list):
         self.id = id
         self.username = username
         self.password = password
         self.roles = UserRoles(roles)
-    
+        self.assigned_tables = assigned_tables if assigned_tables else list()

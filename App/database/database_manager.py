@@ -42,7 +42,7 @@ class DatabaseManager():
     def DB_PASSWORD(self, value):
         self.__DB_PASSWORD = value
 
-    def connect(self) -> tuple[bool , object | str]:
+    def get_connect(self) -> tuple[bool , object | str]:
         if not self.check:
             return False, "Problem connecting to the database"
         conn = psycopg2.connect(
@@ -55,38 +55,48 @@ class DatabaseManager():
         logging.info("Connection to database was successful.")
         return True, conn
 
-    def query_tool(self, query, params=None, fetch=False, number=False) -> tuple[bool , object | str]:
-        result, conn = self.connect()
-        if not result:
-            logging.error(f"Connection Error: {conn}")
-            return False, f"Connection Error: {conn}"
+    def query_tool(self, query: str, params:tuple | list[tuple] = None, conn=None, execute_many=False, fetch_one=False, fetch_all=False, end=True) -> tuple:
+        if conn is None:
+                    result, conn = self.get_connect()
+                    if not result:
+                        logging.error(f"Connection Error: {conn}")
+                        return False, f"Connection Error: {conn}"
         try:
             with conn.cursor() as cur:
-                if not number:
+                if not execute_many:
                     cur.execute(query, params)
-                if number:
+                if execute_many:
                     cur.executemany(query, params)
-                if fetch:
+                if fetch_one:
+                    return True, cur.fetchone()
+                if fetch_all:
                     return True, cur.fetchall()
-                else:
+                if end:
                     conn.commit()
                     return True, "Operation successful."
+                return True, conn
+                
         except Exception as error:
+            end = True
             conn.rollback()
             logging.error(error)
             return False, f"Query Error: {error}"
+        
         finally:
-            conn.close()
+            if end:
+                conn.close()
 
-    def run_script_file(self, file_script) -> bool:
+
+    def run_script_file(self, file_script:str) -> bool:
+        """Function related to creating tables and triggers with file address"""
         try:
             with open(file_script , "r", encoding="utf-8") as file:
                 scripts = file.read()
-            result, message = self.query_tool(scripts)
-            if result:
+                result, message = self.query_tool(scripts)
+                if not result:
+                    print(f"Error executing statement: {message}")
+                    return False
                 return True
-            else:
-                return False
         except Exception as error:
             logging.error(f"Message Error: {error}")
             return False, f"Message Error: {error}"

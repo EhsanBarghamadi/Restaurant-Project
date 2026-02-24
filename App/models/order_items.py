@@ -6,3 +6,4 @@ class OrderItem:
 
     def get_total_item_price(self):
         return self.menu_item.price * self.quantity
+        

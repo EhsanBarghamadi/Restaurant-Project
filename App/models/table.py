@@ -9,3 +9,4 @@ class Table:
         self.id = id
         self.table_number = table_number
         self.status = TableStatus(status)
+        

@@ -4,3 +4,4 @@ class MenuItem:
         self.name = name
         self.price = price
         self.portions_left = portions_left
+        

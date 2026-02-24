@@ -18,3 +18,4 @@ class Orders:
 
     def calculate_total_price(self):
         return sum(item.get_total_item_price() for item in self.items)
+        

@@ -1,4 +1,3 @@
-from app.database.database_manager import DatabaseManager
 from enum import Enum
 
 class UserRoles(Enum):

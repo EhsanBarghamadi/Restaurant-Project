@@ -8,7 +8,7 @@ class Users():
     """
     Docstring for Users
     """
-    def __init__(self, id, username, password, roles: object, assigned_tables: list):
+    def __init__(self, id, username, password, roles: str, assigned_tables: list = None):
         self.id = id
         self.username = username
         self.password = password

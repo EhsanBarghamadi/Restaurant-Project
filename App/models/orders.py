@@ -1,3 +1,5 @@
+from app.models.user import Users
+from app.models.table import Table
 from enum import Enum
 
 class OrderStatus(Enum):
@@ -8,7 +10,7 @@ class OrderStatus(Enum):
     PAID = 'paid'
 
 class Orders:
-    def __init__(self, id: int, waiter, table, status: str, order_time=None, items=None):
+    def __init__(self, id: int, waiter: Users, table: Table, status: str, order_time, items=None):
         self.id = id
         self.waiter = waiter
         self.table = table

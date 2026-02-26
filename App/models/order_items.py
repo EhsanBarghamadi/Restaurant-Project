@@ -1,5 +1,7 @@
+from app.models.menu import MenuItems
+
 class OrderItem:
-    def __init__(self, menu_item, quantity: int, id: int = None):
+    def __init__(self, menu_item : MenuItems, quantity: int, id: int = None):
         self.id = id
         self.menu_item = menu_item
         self.quantity = quantity

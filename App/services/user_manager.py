@@ -49,7 +49,7 @@ class UserManager:
                 (%s, %s, %s)
                 RETURNING id
                 """
-        result, info = self.db.query_tool(query, params=(username, password, role.value), fetch_one=True)
+        result, info = self.db.query_tool(query, params=(username, password, role.value), fetch_one=True, end=True)
         if result and info:
              new_user = Users(info[0], username, password, role)
              return True, new_user
@@ -66,7 +66,7 @@ class UserManager:
                 """
         result, info = self.db.query_tool(query, params=(data.id,))
         if result:
-            return True, f"Username {username} was eliminated."
+            return True, f"Username {username} was deleted."
         return False, "Database error during insertion"
     
     def change_password(self, username: str, old_password: str, new_password: str) -> tuple[bool, str]:
@@ -81,10 +81,10 @@ class UserManager:
                             SET password = %s
                             WHERE username = %s
                             """
-                    output, finding = self.db.query_tool(query, params=(new_password, username), fetch_one=True)
+                    output, finding = self.db.query_tool(query, params=(new_password, data.username))
                     if output:
                         return True, f"Username {username}'s password has been changed successfully."
-                    return False, "Database error during insertion"              
+                    return False, "Database error during update"              
                 return False, f"Old password does not match."                
         return False, "Database error during insertion"
     
@@ -109,7 +109,7 @@ class UserManager:
                     resu, user_obj = self.existence_user(username)
                     info_waiter.append(user_obj)
                 return True, info_waiter
-            return False, "Incorrect password entered."
+            return False, "Database error during insertion"
 
     def assign_table_to_waiter(self, waiter_username: str, table_id) -> tuple[bool, str]:
         res, obj_waiter = self.existence_user(waiter_username)

@@ -10,6 +10,49 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+class SuperDatabaseManager():
+    def __init__(self):
+            try:
+                check_list = [os.getenv("DEFAULT_NAME"), os.getenv("DB_USERNAME"), os.getenv("DB_PASSWORD"), os.getenv("DB_HOST"), os.getenv("DB_PORT")]
+                if None in check_list:
+                    logging.error("Problem connecting to database and .env file")
+                    self.value_check = False
+                else:
+                    self.DEFAULT_NAME = os.getenv("DEFAULT_NAME")
+                    self.NEW_DB_NAME = os.getenv("NEW_DB_NAME")
+                    self.DB_USERNAME = os.getenv("DB_USERNAME")
+                    self.__DB_PASSWORD = os.getenv("DB_PASSWORD")
+                    self.DB_HOST = os.getenv("DB_HOST")
+                    self.DB_PORT = os.getenv("DB_PORT")
+                    self.value_check = True
+            except ValueError as error:
+                logging.error(f"The database input values ​​are invalid.\nError: {error}")
+                raise ValueError
+    
+    def create_database(self) -> tuple[bool, str]:
+        if not self.value_check:
+            return False, "Problem connecting to the database"
+        conn = None
+        try:
+            conn = psycopg2.connect(
+                database=self.DEFAULT_NAME,
+                user=self.DB_USERNAME,
+                password=self.__DB_PASSWORD,
+                host=self.DB_HOST,
+                port=self.DB_PORT
+            )
+            logging.info("Connection to database was successful.")
+            conn.autocommit = True
+            query = f"CREATE DATABASE {self.NEW_DB_NAME};"
+            with conn.cursor() as cur:
+                cur.execute(query)
+                return True, f"Database {self.NEW_DB_NAME} addition completed successfully."
+        except Exception as e:
+            return False, f"Error Database: {e}"
+        finally:
+            if conn:
+                conn.close()
+
 class DatabaseManager():
     """
     A helper class to handle PostgreSQL operations using psycopg2.
@@ -18,17 +61,17 @@ class DatabaseManager():
     
     def __init__(self):
             try:
-                check_list = [os.getenv("DB_NAME"), os.getenv("DB_USERNAME"), os.getenv("DB_PASSWORD"), os.getenv("DB_HOST"), os.getenv("DB_PORT")]
+                check_list = [os.getenv("NEW_DB_NAME"), os.getenv("DB_USERNAME"), os.getenv("DB_PASSWORD"), os.getenv("DB_HOST"), os.getenv("DB_PORT")]
                 if None in check_list:
                     logging.error("Problem connecting to database and .env file")
-                    self.check = False
+                    self.value_check = False
                 else:
-                    self.DB_NAME = os.getenv("DB_NAME")
+                    self.NEW_DB_NAME = os.getenv("NEW_DB_NAME")
                     self.DB_USERNAME = os.getenv("DB_USERNAME")
                     self.__DB_PASSWORD = os.getenv("DB_PASSWORD")
                     self.DB_HOST = os.getenv("DB_HOST")
                     self.DB_PORT = os.getenv("DB_PORT")
-                    self.check = True
+                    self.value_check = True
             except ValueError as error:
                 logging.error(f"The database input values ​​are invalid.\nError: {error}")
                 raise ValueError
@@ -43,38 +86,45 @@ class DatabaseManager():
         self.__DB_PASSWORD = value
 
     def get_connect(self) -> tuple[bool , object | str]:
-        if not self.check:
+        if not self.value_check:
             return False, "Problem connecting to the database"
-        conn = psycopg2.connect(
-            database=self.DB_NAME,
-            user=self.DB_USERNAME,
-            password=self.__DB_PASSWORD,
-            host=self.DB_HOST,
-            port=self.DB_PORT
-        )
-        logging.info("Connection to database was successful.")
-        return True, conn
+        try:
+            conn = psycopg2.connect(
+                database=self.NEW_DB_NAME,
+                user=self.DB_USERNAME,
+                password=self.__DB_PASSWORD,
+                host=self.DB_HOST,
+                port=self.DB_PORT
+            )
+            logging.info("Connection to database was successful.")
+            return True, conn
+        except Exception as er:
+            return False, f"Database Error: {er}"
 
     def query_tool(self, query: str, params:tuple | list[tuple] = None, conn=None, execute_many=False, fetch_one=False, fetch_all=False, end=True) -> tuple:
+        own_connection = False
         if conn is None:
                     result, conn = self.get_connect()
                     if not result:
                         logging.error(f"Connection Error: {conn}")
                         return False, f"Connection Error: {conn}"
+                    own_connection = True        
         try:
             with conn.cursor() as cur:
-                if not execute_many:
-                    cur.execute(query, params)
                 if execute_many:
                     cur.executemany(query, params)
+                else:
+                    cur.execute(query, params)
+                data = None
                 if fetch_one:
-                    return True, cur.fetchone()
-                if fetch_all:
-                    return True, cur.fetchall()
+                    data = cur.fetchone()
+                elif fetch_all:
+                    data = cur.fetchall()
                 if end:
                     conn.commit()
-                    return True, "Operation successful."
-                return True, conn
+                if fetch_one or fetch_all:
+                    return True, data
+                return True, "Operation successful."
                 
         except Exception as error:
             end = True
@@ -83,8 +133,8 @@ class DatabaseManager():
             return False, f"Query Error: {error}"
         
         finally:
-            if end:
-                conn.close()
+            if own_connection and end and conn:
+                            conn.close()
 
 
     def run_script_file(self, file_script:str) -> bool:
